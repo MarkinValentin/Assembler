@@ -1,80 +1,79 @@
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/mobility-module.h"
-#include "ns3/lte-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/point-to-point-module.h"
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
 
-using namespace ns3;
-
-int main (int argc, char *argv[])
+// Функция для генерации белого гауссовского шума с использованием преобразования Бокса-Мюллера
+double generateGaussianNoise()
 {
-  // Create nodes
-  NodeContainer enbNode;
-  enbNode.Create(1);
-  
-  NodeContainer ueNodes;
-  ueNodes.Create(2);
+    static double z0, z1;
+    static bool generate;
+    generate = !generate;
 
-  // Install Mobility model
-  MobilityHelper mobility;
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (enbNode);
-  mobility.Install (ueNodes);
+    if (!generate)
+        return z1;
 
-  // Create LTE helper
-  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
+    double u1, u2, v1, v2, s;
+    do
+    {
+        u1 = rand() / ((double)RAND_MAX);
+        u2 = rand() / ((double)RAND_MAX);
+        v1 = 2 * u1 - 1;
+        v2 = 2 * u2 - 1;
+        s = v1 * v1 + v2 * v2;
+    } while (s >= 1 || s == 0);
 
-  // Install eNodeB
-  NetDeviceContainer enbDevs;
-  enbDevs = lteHelper->InstallEnbDevice (enbNode);
+    double multiplier = sqrt(-2 * log(s) / s);
+    z0 = v1 * multiplier;
+    z1 = v2 * multiplier;
 
-  // Install UEs
-  NetDeviceContainer ueDevs;
-  ueDevs = lteHelper->InstallUeDevice (ueNodes);
+    return z0;
+}
 
-  // Attach UEs to eNodeB
-  lteHelper->Attach (ueDevs, enbDevs.Get (0));
+// Функция для вычисления среднего значения массива
+double mean(double arr[], int size)
+{
+    double sum = 0;
+    for (int i = 0; i < size; ++i)
+    {
+        sum += arr[i];
+    }
+    return sum / size;
+}
 
-  // Activate a data radio bearer
-  lteHelper->ActivateDataRadioBearer (ueDevs);
+// Функция для вычисления стандартного отклонения массива
+double stddev(double arr[], int size)
+{
+    double m = mean(arr, size);
+    double sum_sq_diff = 0;
+    for (int i = 0; i < size; ++i)
+    {
+        sum_sq_diff += (arr[i] - m) * (arr[i] - m);
+    }
+    return sqrt(sum_sq_diff / size);
+}
 
-  // Configure the scheduler
-  lteHelper->SetSchedulerType ("ns3::TdBetScheduler");
+int main()
+{
+    // Задаем параметры
+    const int numSamples = 10000;
 
-  // Configure RLC and MAC layer tracing
-  lteHelper->EnableRlcTraces ();
-  lteHelper->EnableMacTraces ();
+    // Инициализируем генератор случайных чисел
+    srand(time(NULL));
 
-  // Install internet stack on UEs
-  InternetStackHelper internet;
-  internet.Install (ueNodes);
+    // Генерируем белый гауссовский шум и сохраняем значения в массиве
+    double samples[numSamples];
+    for (int i = 0; i < numSamples; ++i)
+    {
+        samples[i] = generateGaussianNoise();
+    }
 
-  // Assign IP addresses to UEs
-  Ipv4AddressHelper ipv4;
-  ipv4.SetBase ("10.1.1.0", "255.255.255.0");
-  ipv4.Assign (ueDevs);
+    // Вычисляем среднее значение и стандартное отклонение
+    double meanValue = mean(samples, numSamples);
+    double stddevValue = stddev(samples, numSamples);
 
-  // Create traffic generator
-  UdpClientHelper client (Ipv4Address ("10.1.1.1"), 9);
-  client.SetAttribute ("MaxPackets", UintegerValue (UINT32_MAX));
-  client.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
-  client.SetAttribute ("PacketSize", UintegerValue (1024));
+    std::cout << "Mean: " << meanValue << std::endl;
+    std::cout << "Standard Deviation: " << stddevValue << std::endl;
 
-  ApplicationContainer clientApps = client.Install (ueNodes.Get (0));
-  clientApps.Start (Seconds (0.0));
-  clientApps.Stop (Seconds (10.0));
-
-  // Create echo server
-  UdpServerHelper echoServer (9);
-  ApplicationContainer serverApps = echoServer.Install (ueNodes.Get (1));
-  serverApps.Start (Seconds (0.0));
-  serverApps.Stop (Seconds (10.0));
-
-  // Run simulation
-  Simulator::Stop (Seconds (10.0));
-  Simulator::Run ();
-  Simulator::Destroy ();
-
-  return 0;
+    return 0;
 }
