@@ -1,10 +1,12 @@
-user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first
+ser@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first
 Scanning dependencies of target first
 [  0%] Building CXX object examples/tutorial/CMakeFiles/first.dir/first.cc.o
 /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc: In function ‘int main(int, char**)’:
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:24:40: error: no matching function for call to ‘ns3::EpcTft::PacketFilter::PacketFilter(int)’
-   24 |     tft->Add(new EpcTft::PacketFilter(1));
-      |                                        ^
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:24:14: error: cannot convert ‘ns3::EpcTft::PacketFilter*’ to ‘ns3::EpcTft::PacketFilter’
+   24 |     tft->Add(new EpcTft::PacketFilter());
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~
+      |              |
+      |              ns3::EpcTft::PacketFilter*
 In file included from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/epc-tft.h:1,
                  from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/epc-helper.h:27,
                  from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/no-backhaul-epc-helper.h:24,
@@ -12,18 +14,11 @@ In file included from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/
                  from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/emu-epc-helper.h:1,
                  from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-module.h:6,
                  from /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:3:
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:72:9: note: candidate: ‘ns3::EpcTft::PacketFilter::PacketFilter()’
-   72 |         PacketFilter();
-      |         ^~~~~~~~~~~~
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:72:9: note:   candidate expects 0 arguments, 1 provided
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note: candidate: ‘ns3::EpcTft::PacketFilter::PacketFilter(const ns3::EpcTft::PacketFilter&)’
-   70 |     struct PacketFilter
-      |            ^~~~~~~~~~~~
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note:   no known conversion for argument 1 from ‘int’ to ‘const ns3::EpcTft::PacketFilter&’
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note: candidate: ‘ns3::EpcTft::PacketFilter::PacketFilter(ns3::EpcTft::PacketFilter&&)’
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note:   no known conversion for argument 1 from ‘int’ to ‘ns3::EpcTft::PacketFilter&&’
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:148:30: note:   initializing argument 1 of ‘uint8_t ns3::EpcTft::Add(ns3::EpcTft::PacketFilter)’
+  148 |     uint8_t Add(PacketFilter f);
+      |                 ~~~~~~~~~~~~~^
 make[3]: *** [examples/tutorial/CMakeFiles/first.dir/build.make:65: examples/tutorial/CMakeFiles/first.dir/first.cc.o] Error 1
 make[2]: *** [CMakeFiles/Makefile2:16439: examples/tutorial/CMakeFiles/first.dir/all] Error 2
 make[1]: *** [CMakeFiles/Makefile2:16445: examples/tutorial/CMakeFiles/first.dir/rule] Error 2
 make: *** [Makefile:5485: first] Error 2
-user@ubuntu:~/Desktop/ns-allinone-3.41/ns-
+user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ 
