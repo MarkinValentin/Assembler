@@ -1,30 +1,67 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/lte-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/point-to-point-module.h"
+#include "ns3/applications-module.h"
 
 using namespace ns3;
 
-int main (int argc, char *argv[])
+int main ()
 {
-  // Создание узлов eNB и UE
-  Ptr<Node> enb = CreateObject<Node> ();
-  Ptr<Node> ue1 = CreateObject<Node> ();
-  Ptr<Node> ue2 = CreateObject<Node> ();
-
-  // Установка LTE устройств
+  // Создание узлов
+  NodeContainer enbNodes;
+  enbNodes.Create (1);
+  
+  NodeContainer ueNodes;
+  ueNodes.Create (2);
+  
+  // Установка LTE
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
-  lteHelper->SetSchedulerType ("ns3::TdMtFfMacScheduler");
   
-  // Установка параметров узла eNB
-  NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice (enb);
+  // Настройка канала связи между eNB и UE
+  Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper> ();
+  lteHelper->SetEpcHelper (epcHelper);
   
-  // Установка параметров узлов UE
-  NetDeviceContainer ue1Devs = lteHelper->InstallUeDevice (ue1);
-  NetDeviceContainer ue2Devs = lteHelper->InstallUeDevice (ue2);
+  // Установка конфигурации узлов
+  lteHelper->SetEnbDeviceAttribute ("DlBandwidth", UintegerValue (100));
+  lteHelper->SetEnbDeviceAttribute ("UlBandwidth", UintegerValue (100));
   
-  // Установка фиктивной сетевой архитектуры
-  lteHelper->Attach (ue1Devs, enbDevs.Get (0));
-  lteHelper->Attach (ue2Devs, enbDevs.Get (0));
+  // Подключение узлов к eNB
+  NetDeviceContainer enbDevs;
+  enbDevs = lteHelper->InstallEnbDevice (enbNodes);
+  
+  NetDeviceContainer ueDevs;
+  ueDevs = lteHelper->InstallUeDevice (ueNodes);
+  
+  // Активация соединения LTE
+  lteHelper->Attach (ueDevs, enbDevs.Get (0));
+  lteHelper->ActivateDataRadioBearer (ueDevs, EpsBearer ());
+  
+  // Установка сетевых интерфейсов
+  InternetStackHelper internet;
+  internet.Install (ueNodes);
+  
+  Ipv4AddressHelper ipv4;
+  ipv4.SetBase ("1.0.0.0", "255.0.0.0");
+  Ipv4InterfaceContainer ueIpIfaces;
+  ueIpIfaces = ipv4.Assign (ueDevs);
+  
+  // Настройка UDP эхо сервера
+  UdpEchoServerHelper echoServer (9);
+  ApplicationContainer serverApps = echoServer.Install (ueNodes.Get (0));
+  serverApps.Start (Seconds (1.0));
+  serverApps.Stop (Seconds (10.0));
+  
+  // Настройка UDP эхо клиента
+  UdpEchoClientHelper echoClient (ueIpIfaces.GetAddress (0), 9);
+  echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+  echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
+  echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
+  
+  ApplicationContainer clientApps = echoClient.Install (ueNodes.Get (1));
+  clientApps.Start (Seconds (2.0));
+  clientApps.Stop (Seconds (10.0));
   
   // Запуск симуляции
   Simulator::Stop (Seconds (10));
