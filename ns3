@@ -1,8 +1,9 @@
 #include <iostream>
 #include <cmath>
 #include <random>
-#include <chrono>
+#include <vector>
 #include <algorithm>
+#include <numeric>
 
 // Функция для генерации белого гауссовского шума методом Бокса-Мюллера
 double whiteNoiseBoxMuller() {
@@ -33,7 +34,15 @@ void computeAndPrintDistribution(const std::vector<double>& data) {
     std::sort(sortedData.begin(), sortedData.end());
     
     // Вычисляем PDF
-    // Здесь можно использовать различные методы для оценки плотности распределения
+    std::vector<double> pdf(data.size());
+    double binSize = 0.1; // Размер интервала для гистограммы
+    for (double val : data) {
+        int bin = std::floor(val / binSize);
+        ++pdf[bin];
+    }
+    for (double& val : pdf) {
+        val /= data.size() * binSize;
+    }
     
     // Вычисляем CDF
     std::vector<double> cdf = computeCDF(sortedData);
@@ -41,7 +50,7 @@ void computeAndPrintDistribution(const std::vector<double>& data) {
     // Выводим результаты на экран
     std::cout << "PDF/CDF of the generated data:" << std::endl;
     for (size_t i = 0; i < sortedData.size(); ++i) {
-        std::cout << "Value: " << sortedData[i] << "\t PDF: " << 1.0 / sortedData.size() << "\t CDF: " << cdf[i] << std::endl;
+        std::cout << "Value: " << sortedData[i] << "\t PDF: " << pdf[i] << "\t CDF: " << cdf[i] << std::endl;
     }
 }
 
@@ -54,30 +63,9 @@ int main() {
         whiteNoise.push_back(whiteNoiseBoxMuller());
     }
     
-    // Вычисляем среднее значение и стандартное отклонение, пропуская NaN значения
-    double sum = 0.0;
-    int validValues = 0;
-    for (double val : whiteNoise) {
-        if (!std::isnan(val)) {
-            sum += val;
-            ++validValues;
-        }
-    }
-    double mean = validValues > 0 ? sum / validValues : std::numeric_limits<double>::quiet_NaN();
-    
-    double variance = 0.0;
-    for (double val : whiteNoise) {
-        if (!std::isnan(val)) {
-            variance += (val - mean) * (val - mean);
-        }
-    }
-    double stdDev = validValues > 0 ? sqrt(variance / validValues) : std::numeric_limits<double>::quiet_NaN();
-    
-    std::cout << "Mean: " << (std::isnan(mean) ? "Undefined" : std::to_string(mean)) << std::endl;
-    std::cout << "Standard Deviation: " << (std::isnan(stdDev) ? "Undefined" : std::to_string(stdDev)) << std::endl;
-    
     // Вычисляем PDF и CDF белого шума
     computeAndPrintDistribution(whiteNoise);
     
     return 0;
 }
+
