@@ -3,24 +3,23 @@ Scanning dependencies of target first
 [  0%] Building CXX object examples/tutorial/CMakeFiles/first.dir/first.cc.o
 [  0%] Linking CXX executable ../../../build/examples/tutorial/ns3.41-first-default
 /usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `main':
-first.cc:(.text+0x336): undefined reference to `ns3::LteHelper::SetEpcHelper(ns3::Ptr<ns3::EpcHelper>)'
-/usr/bin/ld: first.cc:(.text+0x3ba): undefined reference to `ns3::LteHelper::SetEnbDeviceAttribute(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, ns3::AttributeValue const&)'
-/usr/bin/ld: first.cc:(.text+0x459): undefined reference to `ns3::LteHelper::SetEnbDeviceAttribute(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, ns3::AttributeValue const&)'
-/usr/bin/ld: first.cc:(.text+0x4d6): undefined reference to `ns3::LteHelper::InstallEnbDevice(ns3::NodeContainer)'
-/usr/bin/ld: first.cc:(.text+0x560): undefined reference to `ns3::LteHelper::InstallUeDevice(ns3::NodeContainer)'
-/usr/bin/ld: first.cc:(.text+0x5f9): undefined reference to `ns3::LteHelper::Attach(ns3::NetDeviceContainer, ns3::Ptr<ns3::NetDevice>)'
-/usr/bin/ld: first.cc:(.text+0x638): undefined reference to `ns3::EpsBearer::EpsBearer()'
-/usr/bin/ld: first.cc:(.text+0x66a): undefined reference to `ns3::LteHelper::ActivateDataRadioBearer(ns3::NetDeviceContainer, ns3::EpsBearer)'
+first.cc:(.text+0x306): undefined reference to `ns3::MobilityHelper::MobilityHelper()'
+/usr/bin/ld: first.cc:(.text+0x392): undefined reference to `ns3::MobilityHelper::Install(ns3::NodeContainer) const'
+/usr/bin/ld: first.cc:(.text+0x42d): undefined reference to `ns3::MobilityHelper::Install(ns3::NodeContainer) const'
+/usr/bin/ld: first.cc:(.text+0x48f): undefined reference to `ns3::LteHelper::InstallEnbDevice(ns3::NodeContainer)'
+/usr/bin/ld: first.cc:(.text+0x519): undefined reference to `ns3::LteHelper::InstallUeDevice(ns3::NodeContainer)'
+/usr/bin/ld: first.cc:(.text+0x5b2): undefined reference to `ns3::LteHelper::Attach(ns3::NetDeviceContainer, ns3::Ptr<ns3::NetDevice>)'
+/usr/bin/ld: first.cc:(.text+0x5ef): undefined reference to `ns3::EpsBearer::EpsBearer(ns3::EpsBearer::Qci)'
+/usr/bin/ld: first.cc:(.text+0x61a): undefined reference to `ns3::EpsBearer::EpsBearer(ns3::EpsBearer const&)'
+/usr/bin/ld: first.cc:(.text+0x64c): undefined reference to `ns3::LteHelper::ActivateDataRadioBearer(ns3::NetDeviceContainer, ns3::EpsBearer)'
+/usr/bin/ld: first.cc:(.text+0x707): undefined reference to `ns3::MobilityHelper::~MobilityHelper()'
+/usr/bin/ld: first.cc:(.text+0x8f0): undefined reference to `ns3::MobilityHelper::~MobilityHelper()'
 /usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::EpsBearer::~EpsBearer()':
 first.cc:(.text._ZN3ns39EpsBearerD2Ev[_ZN3ns39EpsBearerD5Ev]+0x13): undefined reference to `vtable for ns3::EpsBearer'
 /usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::Ptr<ns3::LteHelper> ns3::CreateObject<ns3::LteHelper>()':
 first.cc:(.text._ZN3ns312CreateObjectINS_9LteHelperEJEEENS_3PtrIT_EEDpOT0_[_ZN3ns312CreateObjectINS_9LteHelperEJEEENS_3PtrIT_EEDpOT0_]+0x35): undefined reference to `ns3::LteHelper::LteHelper()'
-/usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::Ptr<ns3::PointToPointEpcHelper> ns3::CreateObject<ns3::PointToPointEpcHelper>()':
-first.cc:(.text._ZN3ns312CreateObjectINS_21PointToPointEpcHelperEJEEENS_3PtrIT_EEDpOT0_[_ZN3ns312CreateObjectINS_21PointToPointEpcHelperEJEEENS_3PtrIT_EEDpOT0_]+0x35): undefined reference to `ns3::PointToPointEpcHelper::PointToPointEpcHelper()'
 /usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::Ptr<ns3::LteHelper> ns3::CompleteConstruct<ns3::LteHelper>(ns3::LteHelper*)':
 first.cc:(.text._ZN3ns317CompleteConstructINS_9LteHelperEEENS_3PtrIT_EEPS3_[_ZN3ns317CompleteConstructINS_9LteHelperEEENS_3PtrIT_EEPS3_]+0x30): undefined reference to `ns3::LteHelper::GetTypeId()'
-/usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::Ptr<ns3::PointToPointEpcHelper> ns3::CompleteConstruct<ns3::PointToPointEpcHelper>(ns3::PointToPointEpcHelper*)':
-first.cc:(.text._ZN3ns317CompleteConstructINS_21PointToPointEpcHelperEEENS_3PtrIT_EEPS3_[_ZN3ns317CompleteConstructINS_21PointToPointEpcHelperEEENS_3PtrIT_EEPS3_]+0x30): undefined reference to `ns3::PointToPointEpcHelper::GetTypeId()'
 collect2: error: ld returned 1 exit status
 make[3]: *** [examples/tutorial/CMakeFiles/first.dir/build.make:86: ../build/examples/tutorial/ns3.41-first-default] Error 1
 make[2]: *** [CMakeFiles/Makefile2:16439: examples/tutorial/CMakeFiles/first.dir/all] Error 2
