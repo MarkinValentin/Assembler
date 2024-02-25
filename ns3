@@ -1,58 +1,47 @@
 #include "ns3/core-module.h"
-#include "ns3/lte-module.h"
 #include "ns3/network-module.h"
-#include "ns3/mobility-module.h"
+#include "ns3/lte-module.h"
 #include "ns3/internet-module.h"
+#include "ns3/applications-module.h"
 
 using namespace ns3;
 
-int main ()
+int main (int argc, char *argv[])
 {
-  // Create nodes
-  NodeContainer eNB;
-  eNB.Create (1);
+  // Создаем объект симулятора
+  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
 
+  // Настройка параметров сети LTE
+  Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper> ();
+  lteHelper->SetEpcHelper (epcHelper);
+
+  // Создаем eNB
+  NodeContainer enbNodes;
+  enbNodes.Create (1);
+  NetDeviceContainer enbDevs;
+  enbDevs = lteHelper->InstallEnbDevice (enbNodes);
+
+  // Создаем абонента
   NodeContainer ueNodes;
-  ueNodes.Create (2);
+  ueNodes.Create (1);
+  NetDeviceContainer ueDevs;
+  ueDevs = lteHelper->InstallUeDevice (ueNodes);
 
-  // Install LTE protocol stack on eNB
-  LteHelper lteHelper;
-  NetDeviceContainer enbLteDevice;
-  enbLteDevice = lteHelper.InstallEnbDevice (eNB);
-
-  // Install LTE protocol stack on UEs
-  NetDeviceContainer ueLteDevice;
-  ueLteDevice = lteHelper.InstallUeDevice (ueNodes);
-
-  // Attach UEs to eNB
-  lteHelper.Attach (ueLteDevice, enbLteDevice.Get (0));
-
-  // Activate a data radio bearer
-  lteHelper.ActivateDataRadioBearer (ueLteDevice);
-
-  // Install IP stack
-  InternetStackHelper internetHelper;
-  internetHelper.Install (ueNodes);
-  Ipv4AddressHelper ipv4Helper;
-  ipv4Helper.SetBase ("10.1.1.0", "255.255.255.0");
-  ipv4Helper.Assign (ueLteDevice);
-
-  // Configure traffic generator
-  UdpEchoServerHelper echoServer (9);
-  ApplicationContainer serverApps = echoServer.Install (ueNodes.Get (0));
-  serverApps.Start (Seconds (1.0));
-  serverApps.Stop (Seconds (10.0));
-
-  UdpEchoClientHelper echoClient (ipv4Helper.GetAddress (0), 9);
-  echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
-  echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
-  echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
-
-  ApplicationContainer clientApps = echoClient.Install (ueNodes.Get (1));
-  clientApps.Start (Seconds (2.0));
+  // Установка трафика Full Buffer
+  BulkSendHelper ftp ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address ("255.255.255.255"), 9));
+  ftp.SetAttribute ("MaxBytes", UintegerValue (0xffffffff));
+  ApplicationContainer clientApps = ftp.Install (ueNodes.Get(0));
+  clientApps.Start (Seconds (1.0));
   clientApps.Stop (Seconds (10.0));
 
-  // Run simulation
+  // Настройка планировщика
+  lteHelper->SetSchedulerType ("ns3::TdMtFfMacScheduler");
+
+  // Включаем вывод ключевых характеристик с RLC и MAC уровня
+  lteHelper->EnableMacTraces ();
+  lteHelper->EnableRlcTraces ();
+
+  // Запуск симуляции
   Simulator::Stop (Seconds (10.0));
   Simulator::Run ();
   Simulator::Destroy ();
