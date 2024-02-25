@@ -1,20 +1,29 @@
-user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first.cc
+user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first
 Scanning dependencies of target first
 [  0%] Building CXX object examples/tutorial/CMakeFiles/first.dir/first.cc.o
-[  0%] Linking CXX executable ../../../build/examples/tutorial/ns3.41-first-default
-/usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `main':
-first.cc:(.text+0x322): undefined reference to `ns3::LteHelper::SetSchedulerType(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)'
-/usr/bin/ld: first.cc:(.text+0x38b): undefined reference to `ns3::LteHelper::InstallEnbDevice(ns3::NodeContainer)'
-/usr/bin/ld: first.cc:(.text+0x3f4): undefined reference to `ns3::LteHelper::InstallUeDevice(ns3::NodeContainer)'
-/usr/bin/ld: first.cc:(.text+0x460): undefined reference to `ns3::LteHelper::InstallUeDevice(ns3::NodeContainer)'
-/usr/bin/ld: first.cc:(.text+0x4d7): undefined reference to `ns3::LteHelper::Attach(ns3::NetDeviceContainer, ns3::Ptr<ns3::NetDevice>)'
-/usr/bin/ld: first.cc:(.text+0x54b): undefined reference to `ns3::LteHelper::Attach(ns3::NetDeviceContainer, ns3::Ptr<ns3::NetDevice>)'
-/usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::Ptr<ns3::LteHelper> ns3::CreateObject<ns3::LteHelper>()':
-first.cc:(.text._ZN3ns312CreateObjectINS_9LteHelperEJEEENS_3PtrIT_EEDpOT0_[_ZN3ns312CreateObjectINS_9LteHelperEJEEENS_3PtrIT_EEDpOT0_]+0x35): undefined reference to `ns3::LteHelper::LteHelper()'
-/usr/bin/ld: CMakeFiles/first.dir/first.cc.o: in function `ns3::Ptr<ns3::LteHelper> ns3::CompleteConstruct<ns3::LteHelper>(ns3::LteHelper*)':
-first.cc:(.text._ZN3ns317CompleteConstructINS_9LteHelperEEENS_3PtrIT_EEPS3_[_ZN3ns317CompleteConstructINS_9LteHelperEEENS_3PtrIT_EEPS3_]+0x30): undefined reference to `ns3::LteHelper::GetTypeId()'
-collect2: error: ld returned 1 exit status
-make[3]: *** [examples/tutorial/CMakeFiles/first.dir/build.make:86: ../build/examples/tutorial/ns3.41-first-default] Error 1
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc: In function ‘int main(int, char**)’:
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:24:40: error: no matching function for call to ‘ns3::EpcTft::PacketFilter::PacketFilter(int)’
+   24 |     tft->Add(new EpcTft::PacketFilter(1));
+      |                                        ^
+In file included from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/epc-tft.h:1,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/epc-helper.h:27,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/no-backhaul-epc-helper.h:24,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/emu-epc-helper.h:26,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/emu-epc-helper.h:1,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-module.h:6,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:3:
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:72:9: note: candidate: ‘ns3::EpcTft::PacketFilter::PacketFilter()’
+   72 |         PacketFilter();
+      |         ^~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:72:9: note:   candidate expects 0 arguments, 1 provided
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note: candidate: ‘ns3::EpcTft::PacketFilter::PacketFilter(const ns3::EpcTft::PacketFilter&)’
+   70 |     struct PacketFilter
+      |            ^~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note:   no known conversion for argument 1 from ‘int’ to ‘const ns3::EpcTft::PacketFilter&’
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note: candidate: ‘ns3::EpcTft::PacketFilter::PacketFilter(ns3::EpcTft::PacketFilter&&)’
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:70:12: note:   no known conversion for argument 1 from ‘int’ to ‘ns3::EpcTft::PacketFilter&&’
+make[3]: *** [examples/tutorial/CMakeFiles/first.dir/build.make:65: examples/tutorial/CMakeFiles/first.dir/first.cc.o] Error 1
 make[2]: *** [CMakeFiles/Makefile2:16439: examples/tutorial/CMakeFiles/first.dir/all] Error 2
 make[1]: *** [CMakeFiles/Makefile2:16445: examples/tutorial/CMakeFiles/first.dir/rule] Error 2
 make: *** [Makefile:5485: first] Error 2
+user@ubuntu:~/Desktop/ns-allinone-3.41/ns-
