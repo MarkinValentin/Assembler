@@ -54,45 +54,30 @@ int main() {
         whiteNoise.push_back(whiteNoiseBoxMuller());
     }
     
-    // Выводим среднее значение и стандартное отклонение
+    // Вычисляем среднее значение и стандартное отклонение, пропуская NaN значения
     double sum = 0.0;
+    int validValues = 0;
     for (double val : whiteNoise) {
-        sum += val;
+        if (!std::isnan(val)) {
+            sum += val;
+            ++validValues;
+        }
     }
-    double mean = sum / N;
+    double mean = validValues > 0 ? sum / validValues : std::numeric_limits<double>::quiet_NaN();
     
     double variance = 0.0;
     for (double val : whiteNoise) {
-        variance += (val - mean) * (val - mean);
+        if (!std::isnan(val)) {
+            variance += (val - mean) * (val - mean);
+        }
     }
-    double stdDev = sqrt(variance / N);
+    double stdDev = validValues > 0 ? sqrt(variance / validValues) : std::numeric_limits<double>::quiet_NaN();
     
     std::cout << "Mean: " << (std::isnan(mean) ? "Undefined" : std::to_string(mean)) << std::endl;
     std::cout << "Standard Deviation: " << (std::isnan(stdDev) ? "Undefined" : std::to_string(stdDev)) << std::endl;
     
     // Вычисляем PDF и CDF белого шума
     computeAndPrintDistribution(whiteNoise);
-    
-    // Теперь сравним сгенерированные данные с данными, сгенерированными стандартной функцией
-    std::vector<double> standardNoise;
-    std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
-    std::normal_distribution<double> distribution(0.0, 1.0);
-    for (int i = 0; i < N; ++i) {
-        standardNoise.push_back(distribution(generator));
-    }
-    
-    // Вычисляем PDF и CDF стандартного шума
-    computeAndPrintDistribution(standardNoise);
-    
-    // Сравниваем распределения с помощью теста Колмогорова-Смирнова
-    double ksStatistic = 0.0;
-    for (size_t i = 0; i < N; ++i) {
-        double diff = fabs(whiteNoise[i] - standardNoise[i]);
-        if (diff > ksStatistic) {
-            ksStatistic = diff;
-        }
-    }
-    std::cout << "Kolmogorov-Smirnov Statistic: " << ksStatistic << std::endl;
     
     return 0;
 }
