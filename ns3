@@ -1,48 +1,39 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/lte-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/applications-module.h"
 
 using namespace ns3;
 
 int main (int argc, char *argv[])
 {
-  // Создаем объект симулятора
-  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
-
-  // Настройка параметров сети LTE
-  Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper> ();
-  lteHelper->SetEpcHelper (epcHelper);
-
-  // Создаем eNB
+  // Create nodes
   NodeContainer enbNodes;
-  enbNodes.Create (1);
-  NetDeviceContainer enbDevs;
-  enbDevs = lteHelper->InstallEnbDevice (enbNodes);
-
-  // Создаем абонента
+  enbNodes.Create (1); // 1 eNodeB
   NodeContainer ueNodes;
-  ueNodes.Create (1);
-  NetDeviceContainer ueDevs;
-  ueDevs = lteHelper->InstallUeDevice (ueNodes);
+  ueNodes.Create (2);  // 2 UEs
 
-  // Установка трафика Full Buffer
-  BulkSendHelper ftp ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address ("255.255.255.255"), 9));
-  ftp.SetAttribute ("MaxBytes", UintegerValue (0xffffffff));
-  ApplicationContainer clientApps = ftp.Install (ueNodes.Get(0));
-  clientApps.Start (Seconds (1.0));
-  clientApps.Stop (Seconds (10.0));
+  // Install LTE protocol stack on eNodeB and UEs
+  LteHelper lte;
+  NetDeviceContainer enbDevs = lte.InstallEnbDevice (enbNodes);
+  NetDeviceContainer ueDevs = lte.InstallUeDevice (ueNodes);
 
-  // Настройка планировщика
-  lteHelper->SetSchedulerType ("ns3::TdMtFfMacScheduler");
+  // Attach UEs to eNodeB
+  lte.Attach (ueDevs, enbDevs.Get (0));
 
-  // Включаем вывод ключевых характеристик с RLC и MAC уровня
-  lteHelper->EnableMacTraces ();
-  lteHelper->EnableRlcTraces ();
+  // Set up channels
+  Ptr<LteChannel> channel = Create<LteChannel> ();
+  Ptr<LteSpectrumChannel> spectrumChannel = Create<LteSpectrumChannel> ();
+  channel->AddSubChannel (spectrumChannel);
+  lte.AddDownlinkChannel (enbDevs, channel);
 
-  // Запуск симуляции
-  Simulator::Stop (Seconds (10.0));
+  // Set up packet scheduler
+  Ptr<LteScheduler> scheduler = Create<LteScheduler> ();
+
+  // Configure RLC and MAC
+  // (Note: This part may vary depending on your specific requirements)
+
+  // Start simulation
+  Simulator::Stop (Seconds (10));
   Simulator::Run ();
   Simulator::Destroy ();
 
