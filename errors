@@ -1,0 +1,34 @@
+user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first.cc
+Scanning dependencies of target first
+[  0%] Building CXX object examples/tutorial/CMakeFiles/first.dir/first.cc.o
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc: In function ‘int main()’:
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:31:49: error: no matching function for call to ‘ns3::LteHelper::ActivateDataRadioBearer(ns3::NetDeviceContainer&)’
+   31 |   lteHelper.ActivateDataRadioBearer (ueLteDevice);
+      |                                                 ^
+In file included from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-helper.h:1,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-module.h:10,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:2:
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:540:10: note: candidate: ‘void ns3::LteHelper::ActivateDataRadioBearer(ns3::NetDeviceContainer, ns3::EpsBearer)’
+  540 |     void ActivateDataRadioBearer(NetDeviceContainer ueDevices, EpsBearer bearer);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:540:10: note:   candidate expects 2 arguments, 1 provided
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:550:10: note: candidate: ‘void ns3::LteHelper::ActivateDataRadioBearer(ns3::Ptr<ns3::NetDevice>, ns3::EpsBearer)’
+  550 |     void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:550:10: note:   candidate expects 2 arguments, 1 provided
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:41:3: error: ‘UdpEchoServerHelper’ was not declared in this scope
+   41 |   UdpEchoServerHelper echoServer (9);
+      |   ^~~~~~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:42:37: error: ‘echoServer’ was not declared in this scope
+   42 |   ApplicationContainer serverApps = echoServer.Install (ueNodes.Get (0));
+      |                                     ^~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:46:3: error: ‘UdpEchoClientHelper’ was not declared in this scope
+   46 |   UdpEchoClientHelper echoClient (ipv4Helper.GetAddress (0), 9);
+      |   ^~~~~~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:47:3: error: ‘echoClient’ was not declared in this scope
+   47 |   echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+      |   ^~~~~~~~~~
+make[3]: *** [examples/tutorial/CMakeFiles/first.dir/build.make:65: examples/tutorial/CMakeFiles/first.dir/first.cc.o] Error 1
+make[2]: *** [CMakeFiles/Makefile2:16439: examples/tutorial/CMakeFiles/first.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:16445: examples/tutorial/CMakeFiles/first.dir/rule] Error 2
+make: *** [Makefile:5485: first] Error 2
