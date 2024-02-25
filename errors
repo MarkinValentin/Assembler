@@ -1,24 +1,34 @@
-ser@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first
+user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ ./ns3 run first
 Scanning dependencies of target first
 [  0%] Building CXX object examples/tutorial/CMakeFiles/first.dir/first.cc.o
 /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc: In function ‘int main(int, char**)’:
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:24:14: error: cannot convert ‘ns3::EpcTft::PacketFilter*’ to ‘ns3::EpcTft::PacketFilter’
-   24 |     tft->Add(new EpcTft::PacketFilter());
-      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~
-      |              |
-      |              ns3::EpcTft::PacketFilter*
-In file included from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/epc-tft.h:1,
-                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/epc-helper.h:27,
-                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/no-backhaul-epc-helper.h:24,
-                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/emu-epc-helper.h:26,
-                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/emu-epc-helper.h:1,
-                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-module.h:6,
-                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:3:
-/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/model/epc-tft.h:148:30: note:   initializing argument 1 of ‘uint8_t ns3::EpcTft::Add(ns3::EpcTft::PacketFilter)’
-  148 |     uint8_t Add(PacketFilter f);
-      |                 ~~~~~~~~~~~~~^
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:40:45: error: no matching function for call to ‘ns3::LteHelper::ActivateDataRadioBearer(ns3::NetDeviceContainer&)’
+   40 |   lteHelper->ActivateDataRadioBearer (ueDevs);
+      |                                             ^
+In file included from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-helper.h:1,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/build/include/ns3/lte-module.h:10,
+                 from /home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:4:
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:540:10: note: candidate: ‘void ns3::LteHelper::ActivateDataRadioBearer(ns3::NetDeviceContainer, ns3::EpsBearer)’
+  540 |     void ActivateDataRadioBearer(NetDeviceContainer ueDevices, EpsBearer bearer);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:540:10: note:   candidate expects 2 arguments, 1 provided
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:550:10: note: candidate: ‘void ns3::LteHelper::ActivateDataRadioBearer(ns3::Ptr<ns3::NetDevice>, ns3::EpsBearer)’
+  550 |     void ActivateDataRadioBearer(Ptr<NetDevice> ueDevice, EpsBearer bearer);
+      |          ^~~~~~~~~~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/src/lte/helper/lte-helper.h:550:10: note:   candidate expects 2 arguments, 1 provided
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:59:3: error: ‘UdpClientHelper’ was not declared in this scope
+   59 |   UdpClientHelper client (Ipv4Address ("10.1.1.1"), 9);
+      |   ^~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:60:3: error: ‘client’ was not declared in this scope
+   60 |   client.SetAttribute ("MaxPackets", UintegerValue (UINT32_MAX));
+      |   ^~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:69:3: error: ‘UdpServerHelper’ was not declared in this scope
+   69 |   UdpServerHelper echoServer (9);
+      |   ^~~~~~~~~~~~~~~
+/home/user/Desktop/ns-allinone-3.41/ns-3.41/examples/tutorial/first.cc:70:37: error: ‘echoServer’ was not declared in this scope
+   70 |   ApplicationContainer serverApps = echoServer.Install (ueNodes.Get (1));
+      |                                     ^~~~~~~~~~
 make[3]: *** [examples/tutorial/CMakeFiles/first.dir/build.make:65: examples/tutorial/CMakeFiles/first.dir/first.cc.o] Error 1
 make[2]: *** [CMakeFiles/Makefile2:16439: examples/tutorial/CMakeFiles/first.dir/all] Error 2
 make[1]: *** [CMakeFiles/Makefile2:16445: examples/tutorial/CMakeFiles/first.dir/rule] Error 2
 make: *** [Makefile:5485: first] Error 2
-user@ubuntu:~/Desktop/ns-allinone-3.41/ns-3.41$ 
