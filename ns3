@@ -6,30 +6,37 @@ using namespace ns3;
 
 int main (int argc, char *argv[])
 {
-  // Создание узлов eNB и UE
-  Ptr<Node> enb = CreateObject<Node> ();
-  Ptr<Node> ue1 = CreateObject<Node> ();
-  Ptr<Node> ue2 = CreateObject<Node> ();
+    // Создание узлов eNB и двух абонентов
+    NodeContainer enbNodes;
+    enbNodes.Create(1);
 
-  // Установка LTE устройств
-  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
-  lteHelper->SetSchedulerType ("ns3::TdMtFfMacScheduler");
-  
-  // Установка параметров узла eNB
-  NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice (enb);
-  
-  // Установка параметров узлов UE
-  NetDeviceContainer ue1Devs = lteHelper->InstallUeDevice (ue1);
-  NetDeviceContainer ue2Devs = lteHelper->InstallUeDevice (ue2);
-  
-  // Установка фиктивной сетевой архитектуры
-  lteHelper->Attach (ue1Devs, enbDevs.Get (0));
-  lteHelper->Attach (ue2Devs, enbDevs.Get (0));
-  
-  // Запуск симуляции
-  Simulator::Stop (Seconds (10));
-  Simulator::Run ();
-  Simulator::Destroy ();
-  
-  return 0;
+    NodeContainer ueNodes;
+    ueNodes.Create(2);
+
+    // Настройка LTE сети
+    LteHelper lteHelper;
+    NetDeviceContainer enbDevs, ueDevs;
+    enbDevs = lteHelper.InstallEnbDevice(enbNodes);
+    ueDevs = lteHelper.InstallUeDevice(ueNodes);
+
+    // Настройка трафика Full Buffer
+    Ptr<EpcTft> tft = Create<EpcTft>();
+    tft->Add(new EpcTft::PacketFilter(1));
+
+    EpsBearer bearer(EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
+    lteHelper.ActivateDataRadioBearer(ueDevs, bearer);
+
+    // Настройка планировщика пакетов
+    lteHelper.SetSchedulerType("ns3::TdTbfqFfMacScheduler");
+
+    // Настройка вывода ключевых характеристик с RLC и MAC уровней
+    lteHelper.EnableRlcTraces();
+    lteHelper.EnableMacTraces();
+
+    // Запуск симуляции
+    Simulator::Stop(Seconds(10));
+    Simulator::Run();
+    Simulator::Destroy();
+
+    return 0;
 }
