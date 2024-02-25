@@ -1,50 +1,49 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
+#include "ns3/mobility-module.h"
 #include "ns3/lte-module.h"
-#include "ns3/internet-module.h"
-#include "ns3/applications-module.h"
 
 using namespace ns3;
 
 int main (int argc, char *argv[])
 {
-  // Создаем объект симулятора
-  Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
+    // Установка логирования
+    LogComponentEnable ("LteHelper", LOG_LEVEL_DEBUG);
 
-  // Настройка параметров сети LTE
-  Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper> ();
-  lteHelper->SetEpcHelper (epcHelper);
+    // Создание сценария
+    Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
 
-  // Создаем eNB
-  NodeContainer enbNodes;
-  enbNodes.Create (1);
-  NetDeviceContainer enbDevs;
-  enbDevs = lteHelper->InstallEnbDevice (enbNodes);
+    // Установка параметров сценария
+    lteHelper->SetAttribute ("PathlossModel", StringValue ("ns3::FriisPropagationLossModel"));
 
-  // Создаем абонента
-  NodeContainer ueNodes;
-  ueNodes.Create (1);
-  NetDeviceContainer ueDevs;
-  ueDevs = lteHelper->InstallUeDevice (ueNodes);
+    // Создание eNB
+    NodeContainer enbNodes;
+    enbNodes.Create (1);
+    Ptr<Node> enb = enbNodes.Get (0);
+    NetDeviceContainer enbDevs = lteHelper->InstallEnbDevice (enb);
 
-  // Установка трафика Full Buffer
-  BulkSendHelper ftp ("ns3::TcpSocketFactory", InetSocketAddress (Ipv4Address ("255.255.255.255"), 9));
-  ftp.SetAttribute ("MaxBytes", UintegerValue (0xffffffff));
-  ApplicationContainer clientApps = ftp.Install (ueNodes.Get(0));
-  clientApps.Start (Seconds (1.0));
-  clientApps.Stop (Seconds (10.0));
+    // Создание абонентов
+    NodeContainer ueNodes;
+    ueNodes.Create (2);
+    Ptr<Node> ue1 = ueNodes.Get (0);
+    Ptr<Node> ue2 = ueNodes.Get (1);
+    NetDeviceContainer ueDevs = lteHelper->InstallUeDevice (ueNodes);
 
-  // Настройка планировщика
-  lteHelper->SetSchedulerType ("ns3::TdMtFfMacScheduler");
+    // Установка мобильности абонентов
+    MobilityHelper mobility;
+    mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+    mobility.Install (ueNodes);
 
-  // Включаем вывод ключевых характеристик с RLC и MAC уровня
-  lteHelper->EnableMacTraces ();
-  lteHelper->EnableRlcTraces ();
+    // Подключение абонентов к eNB
+    for (uint32_t i = 0; i < ueNodes.GetN (); ++i)
+    {
+        lteHelper->Attach (ueDevs.Get (i), enbDevs.Get (0));
+    }
 
-  // Запуск симуляции
-  Simulator::Stop (Seconds (10.0));
-  Simulator::Run ();
-  Simulator::Destroy ();
+    // Запуск симуляции
+    Simulator::Stop (Seconds (10));
+    Simulator::Run ();
+    Simulator::Destroy ();
 
-  return 0;
+    return 0;
 }
