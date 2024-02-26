@@ -1,121 +1,42 @@
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <random>
-#include <algorithm>
-#include <numeric>
+import ns.applications
+import ns.core
+import ns.internet
+import ns.lte
+import ns.mobility
+import ns.network
+import ns.point_to_point
 
-class LFSRNoiseGenerator {
-private:
-    std::vector<int> shiftRegister;
-    int feedbackMask;
-    int tapPosition;
-public:
-    LFSRNoiseGenerator(int registerLength, int feedbackMask, int tapPosition)
-        : feedbackMask(feedbackMask), tapPosition(tapPosition) {
-        shiftRegister.resize(registerLength, 0);
-    }
+def main():
+    # Создание симулятора
+    ns.core.GlobalValue.Bind("SimulatorImplementationType", ns.core.StringValue("ns3::PySimulatorImpl"))
+    ns.core.GlobalValue.Bind("ChecksumEnabled", ns.core.BooleanValue(True))
+    ns.core.LogComponentEnableAll(ns.core.LOG_LEVEL_INFO)
+    
+    # Создание узлов eNB и двух абонентов
+    enbNode = ns.network.Node()
+    ueNodes = ns.network.NodeContainer()
+    ueNodes.Create(2)
+    
+    # Создание устройств LTE
+    enbDevs = ns.lte.NetDeviceContainer()
+    ueDevs = ns.lte.NetDeviceContainer()
+    
+    # Конфигурация трафика Full Buffer
+    for i in range(2):
+        ueDevs.Add(ns.lte.LteDevice())
+    
+    # Настройка планировщика пакетов
+    lteHelper = ns.lte.LteHelper()
+    lteHelper.SetSchedulerType("ns3::TdMtFfMacScheduler")
+    
+    # Включение трассировки для вывода характеристик RLC и MAC уровней
+    lteHelper.EnableRlcTraces()
+    lteHelper.EnableMacTraces()
+    
+    # Запуск симуляции и запись вывода в файл
+    ns.core.Simulator.Stop(ns.core.Seconds(10))
+    ns.core.Simulator.Run()
+    ns.core.Simulator.Destroy()
 
-    double generateNoise() {
-        int feedbackBit = shiftRegister[0] ^ (shiftRegister[tapPosition] & feedbackMask);
-        std::rotate(shiftRegister.begin(), shiftRegister.begin() + 1, shiftRegister.end());
-        shiftRegister.back() = feedbackBit;
-        return static_cast<double>(feedbackBit);
-    }
-};
-
-// Критерий Колмогорова-Смирнова
-double kolmogorov_smirnov(const std::vector<double>& sample1, const std::vector<double>& sample2) {
-    std::vector<double> sorted1 = sample1;
-    std::vector<double> sorted2 = sample2;
-    std::sort(sorted1.begin(), sorted1.end());
-    std::sort(sorted2.begin(), sorted2.end());
-
-    int n1 = sorted1.size();
-    int n2 = sorted2.size();
-
-    double d = 0.0;
-    int i = 0, j = 0;
-    while (i < n1 && j < n2) {
-        double diff = fabs(sorted1[i] - sorted2[j]);
-        if (diff > d) {
-            d = diff;
-        }
-        if (sorted1[i] < sorted2[j]) {
-            ++i;
-        } else {
-            ++j;
-        }
-    }
-    return d / sqrt(static_cast<double>(n1 * n2) / (n1 + n2));
-}
-
-// Функция для вычисления PDF и CDF
-void compute_pdf_cdf(const std::vector<double>& samples, std::vector<double>& pdf, std::vector<double>& cdf) {
-    // Сортировка выборки
-    std::vector<double> sorted_samples = samples;
-    std::sort(sorted_samples.begin(), sorted_samples.end());
-
-    // Расчет PDF
-    double sample_size = static_cast<double>(samples.size());
-    pdf.clear();
-    pdf.resize(sorted_samples.size(), 0.0);
-    for (size_t i = 0; i < sorted_samples.size(); ++i) {
-        pdf[i] = std::count(sorted_samples.begin(), sorted_samples.end(), sorted_samples[i]) / sample_size;
-    }
-
-    // Расчет CDF
-    cdf.clear();
-    cdf.resize(sorted_samples.size(), 0.0);
-    cdf[0] = pdf[0];
-    for (size_t i = 1; i < pdf.size(); ++i) {
-        cdf[i] = cdf[i - 1] + pdf[i];
-    }
-}
-
-int main() {
-    const int registerLength = 16; // Длина регистра
-    const int feedbackMask = 0b1011; // Маска обратной связи
-    const int tapPosition = 0; // Позиция "выбора"
-
-    LFSRNoiseGenerator generator(registerLength, feedbackMask, tapPosition);
-
-    // Генерация шума
-    const int numSamples = 10000;
-    std::vector<double> samples(numSamples);
-    for (int i = 0; i < numSamples; ++i) {
-        samples[i] = generator.generateNoise();
-    }
-
-    // Выборка из стандартного нормального распределения
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<double> normalDist(0.0, 1.0);
-    std::vector<double> normalSamples(numSamples);
-    for (int i = 0; i < numSamples; ++i) {
-        normalSamples[i] = normalDist(gen);
-    }
-
-    // Вычисление критерия Колмогорова-Смирнова
-    double ks_statistic = kolmogorov_smirnov(samples, normalSamples);
-    std::cout << "Критерий Колмогорова-Смирнова: " << ks_statistic << std::endl;
-
-    // Вычисление PDF и CDF для обеих выборок
-    std::vector<double> pdf_lfsr, cdf_lfsr, pdf_normal, cdf_normal;
-    compute_pdf_cdf(samples, pdf_lfsr, cdf_lfsr);
-    compute_pdf_cdf(normalSamples, pdf_normal, cdf_normal);
-
-    // Вывод PDF и CDF для обеих выборок
-    std::cout << "PDF/CDF для LFSR шума:" << std::endl;
-    for (size_t i = 0; i < pdf_lfsr.size(); ++i) {
-        std::cout << "Value: " << i << ", PDF: " << pdf_lfsr[i] << ", CDF: " << cdf_lfsr[i] << std::endl;
-    }
-    std::cout << std::endl;
-
-    std::cout << "PDF/CDF для стандартного нормального распределения:" << std::endl;
-    for (size_t i = 0; i < pdf_normal.size(); ++i) {
-        std::cout << "Value: " << i << ", PDF: " << pdf_normal[i] << ", CDF: " << cdf_normal[i] << std::endl;
-    }
-
-    return 0;
-}
+if __name__ == "__main__":
+    main()
