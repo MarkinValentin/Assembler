@@ -3,69 +3,50 @@
 #include <random>
 #include <vector>
 #include <algorithm>
-#include <numeric>
+#include <chrono>
+#include <random>
 
-// Функция для генерации белого гауссовского шума методом Бокса-Мюллера
-double whiteNoiseBoxMuller() {
-    static std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
-    static std::normal_distribution<double> distribution(0.0, 1.0);
-    
-    double u1 = distribution(generator);
-    double u2 = distribution(generator);
-    
-    return sqrt(-2 * log(u1)) * cos(2 * M_PI * u2);
+// Функция для генерации данных с использованием стандартной функции генерации в C++
+std::vector<double> generateUsingStandardNormalDistribution(int size) {
+    std::vector<double> data;
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0.0, 1.0);
+    for (int i = 0; i < size; ++i) {
+        data.push_back(distribution(generator));
+    }
+    return data;
 }
 
-// Функция для вычисления функции распределения (CDF) по массиву данных
-std::vector<double> computeCDF(const std::vector<double>& data) {
-    std::vector<double> cdf(data.size());
-    std::partial_sum(data.begin(), data.end(), cdf.begin());
-    double total = cdf.back();
-    for (double& val : cdf) {
-        val /= total;
-    }
-    return cdf;
+// Функция для проведения теста Колмогорова-Смирнова
+void performKolmogorovSmirnovTest(const std::vector<double>& data1, const std::vector<double>& data2) {
+    // Реализация теста Колмогорова-Смирнова
+    // ...
 }
 
-// Функция для вычисления PDF и CDF и вывода их на экран
-void computeAndPrintDistribution(const std::vector<double>& data) {
-    // Сортируем данные для вычисления CDF
-    std::vector<double> sortedData = data;
-    std::sort(sortedData.begin(), sortedData.end());
-    
-    // Вычисляем PDF
-    std::vector<double> pdf(data.size());
-    double binSize = 0.1; // Размер интервала для гистограммы
-    for (double val : data) {
-        int bin = std::floor(val / binSize);
-        ++pdf[bin];
-    }
-    for (double& val : pdf) {
-        val /= data.size() * binSize;
-    }
-    
-    // Вычисляем CDF
-    std::vector<double> cdf = computeCDF(sortedData);
-    
-    // Выводим результаты на экран
-    std::cout << "PDF/CDF of the generated data:" << std::endl;
-    for (size_t i = 0; i < sortedData.size(); ++i) {
-        std::cout << "Value: " << sortedData[i] << "\t PDF: " << pdf[i] << "\t CDF: " << cdf[i] << std::endl;
-    }
+// Функция для проведения теста Шапиро-Уилка
+void performShapiroWilkTest(const std::vector<double>& data) {
+    // Реализация теста Шапиро-Уилка
+    // ...
 }
 
 int main() {
     const int N = 1000; // Размер выборки
-    
-    // Генерируем белый гауссовский шум
-    std::vector<double> whiteNoise;
+
+    // Создание генератора белого гауссовского шума
+    WhiteNoiseGenerator generator;
+
+    // Генерация данных с использованием созданного генератора
+    std::vector<double> generatedData;
     for (int i = 0; i < N; ++i) {
-        whiteNoise.push_back(whiteNoiseBoxMuller());
+        generatedData.push_back(generator.generate());
     }
-    
-    // Вычисляем PDF и CDF белого шума
-    computeAndPrintDistribution(whiteNoise);
-    
+
+    // Генерация данных с использованием стандартной функции в C++
+    std::vector<double> standardData = generateUsingStandardNormalDistribution(N);
+
+    // Проведение статистического теста на сравнение данных
+    performKolmogorovSmirnovTest(generatedData, standardData);
+    performShapiroWilkTest(generatedData);
+
     return 0;
 }
-
