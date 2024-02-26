@@ -1,52 +1,80 @@
 #include <iostream>
+#include <vector>
 #include <cmath>
 #include <random>
-#include <vector>
 #include <algorithm>
-#include <chrono>
-#include <random>
 
-// Функция для генерации данных с использованием стандартной функции генерации в C++
-std::vector<double> generateUsingStandardNormalDistribution(int size) {
-    std::vector<double> data;
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 1.0);
-    for (int i = 0; i < size; ++i) {
-        data.push_back(distribution(generator));
+class LFSRNoiseGenerator {
+private:
+    std::vector<int> shiftRegister;
+    int feedbackMask;
+    int tapPosition;
+public:
+    LFSRNoiseGenerator(int registerLength, int feedbackMask, int tapPosition)
+        : feedbackMask(feedbackMask), tapPosition(tapPosition) {
+        shiftRegister.resize(registerLength, 0);
     }
-    return data;
-}
 
-// Функция для проведения теста Колмогорова-Смирнова
-void performKolmogorovSmirnovTest(const std::vector<double>& data1, const std::vector<double>& data2) {
-    // Реализация теста Колмогорова-Смирнова
-    // ...
-}
+    double generateNoise() {
+        int feedbackBit = shiftRegister[0] ^ (shiftRegister[tapPosition] & feedbackMask);
+        std::rotate(shiftRegister.begin(), shiftRegister.begin() + 1, shiftRegister.end());
+        shiftRegister.back() = feedbackBit;
+        return static_cast<double>(feedbackBit);
+    }
+};
 
-// Функция для проведения теста Шапиро-Уилка
-void performShapiroWilkTest(const std::vector<double>& data) {
-    // Реализация теста Шапиро-Уилка
-    // ...
+// Критерий Колмогорова-Смирнова
+double kolmogorov_smirnov(const std::vector<double>& sample1, const std::vector<double>& sample2) {
+    std::vector<double> sorted1 = sample1;
+    std::vector<double> sorted2 = sample2;
+    std::sort(sorted1.begin(), sorted1.end());
+    std::sort(sorted2.begin(), sorted2.end());
+
+    int n1 = sorted1.size();
+    int n2 = sorted2.size();
+
+    double d = 0.0;
+    int i = 0, j = 0;
+    while (i < n1 && j < n2) {
+        double diff = fabs(sorted1[i] - sorted2[j]);
+        if (diff > d) {
+            d = diff;
+        }
+        if (sorted1[i] < sorted2[j]) {
+            ++i;
+        } else {
+            ++j;
+        }
+    }
+    return d / sqrt(static_cast<double>(n1 * n2) / (n1 + n2));
 }
 
 int main() {
-    const int N = 1000; // Размер выборки
+    const int registerLength = 16; // Длина регистра
+    const int feedbackMask = 0b1011; // Маска обратной связи
+    const int tapPosition = 0; // Позиция "выбора"
 
-    // Создание генератора белого гауссовского шума
-    WhiteNoiseGenerator generator;
+    LFSRNoiseGenerator generator(registerLength, feedbackMask, tapPosition);
 
-    // Генерация данных с использованием созданного генератора
-    std::vector<double> generatedData;
-    for (int i = 0; i < N; ++i) {
-        generatedData.push_back(generator.generate());
+    // Генерация шума
+    const int numSamples = 10000;
+    std::vector<double> samples(numSamples);
+    for (int i = 0; i < numSamples; ++i) {
+        samples[i] = generator.generateNoise();
     }
 
-    // Генерация данных с использованием стандартной функции в C++
-    std::vector<double> standardData = generateUsingStandardNormalDistribution(N);
+    // Выборка из стандартного нормального распределения
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<double> normalDist(0.0, 1.0);
+    std::vector<double> normalSamples(numSamples);
+    for (int i = 0; i < numSamples; ++i) {
+        normalSamples[i] = normalDist(gen);
+    }
 
-    // Проведение статистического теста на сравнение данных
-    performKolmogorovSmirnovTest(generatedData, standardData);
-    performShapiroWilkTest(generatedData);
+    // Вычисление критерия Колмогорова-Смирнова
+    double ks_statistic = kolmogorov_smirnov(samples, normalSamples);
+    std::cout << "Критерий Колмогорова-Смирнова: " << ks_statistic << std::endl;
 
     return 0;
 }
