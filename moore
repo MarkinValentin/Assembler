@@ -1,81 +1,62 @@
 #include <stdio.h>
 
-// Состояния автомата
 typedef enum {
-    WAITING_FOR_COIN,
-    WAITING_FOR_SELECTION,
-    DISPENSING,
-    OUT_OF_STOCK
+    STATE_IDLE,
+    STATE_SELECT_ITEM,
+    STATE_DISPENSE,
+    STATE_RETURN_CHANGE
 } State;
 
-// Виды продуктов
 typedef enum {
-    PRODUCT_1,
-    PRODUCT_2
-} Product;
+    ITEM_NONE,
+    ITEM_9_RUB,
+    ITEM_3_RUB
+} Item;
 
-// Структура для вендингового автомата
-typedef struct {
-    State state;
-    int balance;
-    int product_prices[2];
-    int product_quantities[2];
-} VendingMachine;
-
-// Инициализация вендингового автомата
-void init(VendingMachine *vm) {
-    vm->state = WAITING_FOR_COIN;
-    vm->balance = 0;
-    vm->product_prices[PRODUCT_1] = 3;
-    vm->product_prices[PRODUCT_2] = 9;
-    vm->product_quantities[PRODUCT_1] = 10;
-    vm->product_quantities[PRODUCT_2] = 5;
+State process_input(State current_state, int coin, Item *selected_item) {
+    switch (current_state) {
+        case STATE_IDLE:
+            if (coin == 1 || coin == 2 || coin == 5 || coin == 10)
+                return STATE_SELECT_ITEM;
+            break;
+        case STATE_SELECT_ITEM:
+            if (coin == 1 || coin == 2 || coin == 5 || coin == 10) {
+                // Проверяем, хватает ли денег на товар
+                if (*selected_item == ITEM_9_RUB && coin >= 9) {
+                    return STATE_DISPENSE;
+                } else if (*selected_item == ITEM_3_RUB && coin >= 3) {
+                    return STATE_DISPENSE;
+                }
+            }
+            break;
+        case STATE_DISPENSE:
+            return STATE_RETURN_CHANGE;
+        case STATE_RETURN_CHANGE:
+            return STATE_IDLE;
+    }
+    return current_state;
 }
 
-// Вставка монеты
-void insert_coin(VendingMachine *vm, int coin) {
-    if (coin == 1 || coin == 2 || coin == 5 || coin == 10) {
-        vm->balance += coin;
-        vm->state = WAITING_FOR_SELECTION;
-    } else {
-        printf("Недопустимая монета. Возвращаем её.\n");
+void perform_action(State current_state, Item selected_item) {
+    switch (current_state) {
+        case STATE_IDLE:
+            printf("Выберите товар (1 - 9 руб, 2 - 3 руб)\n");
+            break;
+        case STATE_SELECT_ITEM:
+            printf("Внесите деньги (1, 2, 5, 10)\n");
+            break;
+        case STATE_DISPENSE:
+            printf("Товар выдается: %s\n", selected_item == ITEM_9_RUB ? "9 рублей" : "3 рубля");
+            break;
+        case STATE_RETURN_CHANGE:
+            printf("Сдача возвращается\n");
+            break;
     }
-}
-
-// Выбор продукта
-void select_product(VendingMachine *vm, Product product) {
-    if (vm->state != WAITING_FOR_SELECTION) {
-        printf("Сначала внесите монету.\n");
-        return;
-    }
-
-    if (vm->product_quantities[product] == 0) {
-        printf("Выбранный товар закончился.\n");
-        vm->state = OUT_OF_STOCK;
-        return;
-    }
-
-    if (vm->balance < vm->product_prices[product]) {
-        printf("Недостаточно средств для покупки выбранного товара.\n");
-        return;
-    }
-
-    vm->balance -= vm->product_prices[product];
-    vm->product_quantities[product]--;
-    printf("Товар успешно приобретён. Ваш баланс: %d\n", vm->balance);
-    vm->state = DISPENSING;
-}
-
-// Возврат сдачи
-void return_change(VendingMachine *vm) {
-    printf("Возврат сдачи: %d\n", vm->balance);
-    vm->balance = 0;
 }
 
 int main() {
-    VendingMachine vm;
-    init(&vm);
+    State current_state = STATE_IDLE;
+    int coin;
+    Item selected_item = ITEM_NONE;
 
-    insert_coin(&vm, 5);
-    select_product(&vm, PRODUCT_1);
-    return_change(&
+   
