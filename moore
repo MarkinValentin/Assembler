@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-// Состояния автомата Мура
 typedef enum {
     STATE_IDLE,
     STATE_SELECT_ITEM,
@@ -8,18 +7,27 @@ typedef enum {
     STATE_RETURN_CHANGE
 } State;
 
-// Функция, которая обрабатывает входные монеты и возвращает следующее состояние
-State process_input(State current_state, int coin) {
+typedef enum {
+    ITEM_NONE,
+    ITEM_9_RUB,
+    ITEM_3_RUB
+} Item;
+
+State process_input(State current_state, int coin, Item *selected_item) {
     switch (current_state) {
         case STATE_IDLE:
-            if (coin == 1 || coin == 2)
+            if (coin == 1 || coin == 2 || coin == 5 || coin == 10)
                 return STATE_SELECT_ITEM;
             break;
         case STATE_SELECT_ITEM:
-            if (coin == 1 || coin == 2)
-                return STATE_SELECT_ITEM;
-            else if (coin >= 5)
-                return STATE_DISPENSE;
+            if (coin == 1 || coin == 2 || coin == 5 || coin == 10) {
+                // Проверяем, хватает ли денег на товар
+                if (*selected_item == ITEM_9_RUB && coin >= 9) {
+                    return STATE_DISPENSE;
+                } else if (*selected_item == ITEM_3_RUB && coin >= 3) {
+                    return STATE_DISPENSE;
+                }
+            }
             break;
         case STATE_DISPENSE:
             return STATE_RETURN_CHANGE;
@@ -29,17 +37,16 @@ State process_input(State current_state, int coin) {
     return current_state;
 }
 
-// Функция, которая выполняет действие в зависимости от текущего состояния
-void perform_action(State current_state) {
+void perform_action(State current_state, Item selected_item) {
     switch (current_state) {
         case STATE_IDLE:
-            printf("Выберите товар (1 или 2)\n");
+            printf("Выберите товар (1 - 9 руб, 2 - 3 руб)\n");
             break;
         case STATE_SELECT_ITEM:
-            printf("Внесите дополнительные монеты или нажмите кнопку выбора товара\n");
+            printf("Внесите деньги (1, 2, 5, 10)\n");
             break;
         case STATE_DISPENSE:
-            printf("Товар выдается\n");
+            printf("Товар выдается: %s\n", selected_item == ITEM_9_RUB ? "9 рублей" : "3 рубля");
             break;
         case STATE_RETURN_CHANGE:
             printf("Сдача возвращается\n");
@@ -50,13 +57,14 @@ void perform_action(State current_state) {
 int main() {
     State current_state = STATE_IDLE;
     int coin;
+    Item selected_item = ITEM_NONE;
 
     while (1) {
-        perform_action(current_state);
-        printf("Вставьте монету (1, 2, 5 или 10): ");
+        perform_action(current_state, selected_item);
+        printf("Вставьте монету (1, 2, 5, 10): ");
         scanf("%d", &coin);
 
-        current_state = process_input(current_state, coin);
+        current_state = process_input(current_state, coin, &selected_item);
     }
 
     return 0;
