@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Структура для описания строки автомата Мура
+typedef struct {
+    int state;          // Текущее состояние
+    int input;          // Входное событие (вставленная монета)
+    int output;         // Выходное действие (выдача товара)
+    int next_state;     // Следующее состояние
+} MooreRow;
+
+// Создание таблицы состояний автомата Мура
+void create_moore_table(MooreRow *table) {
+    // Пример таблицы состояний для вендингового автомата
+    table[0] = (MooreRow){0, 1, 0, 1};  // S0: Монета 1 -> Состояние 1
+    table[1] = (MooreRow){1, 2, 0, 2};  // S1: Монета 2 -> Состояние 2
+    table[2] = (MooreRow){2, 5, 0, 3};  // S2: Монета 5 -> Состояние 3
+    table[3] = (MooreRow){3, 10, 1, 0}; // S3: Монета 10 -> Состояние 0 и выдача товара
+}
+
+int main() {
+    // Создание таблицы состояний автомата Мура
+    int num_rows = 4; // Количество состояний
+    MooreRow *moore_table = malloc(sizeof(MooreRow) * num_rows);
+    create_moore_table(moore_table);
+
+    // Начальное состояние автомата
+    int current_state = 0;
+
+    printf("Вставьте монету: 1 (монета 1 рубль), 2 (монета 2 рубля), 5 (монета 5 рублей), 10 (монета 10 рублей)\n");
+
+    // Цикл обработки входных событий
+    while (1) {
+        printf("Текущее состояние: %d\n", current_state);
+
+        int coin;
+        printf("Введите вставленную монету: ");
+        scanf("%d", &coin);
+
+        // Поиск соответствующей строки в таблице состояний
+        int i;
+        for (i = 0; i < num_rows; i++) {
+            if (moore_table[i].state == current_state && moore_table[i].input == coin) {
+                // Вывод выходного действия
+                if (moore_table[i].output == 1) {
+                    printf("Товар выдан!\n");
+                } else if (moore_table[i].output == 0) {
+                    printf("Товар не выдан.\n");
+                }
+
+                // Переход в следующее состояние
+                current_state = moore_table[i].next_state;
+                break;
+            }
+        }
+
+        // Если не найдено соответствующей строки, сообщить об ошибке
+        if (i == num_rows) {
+            printf("Ошибка: Неверная монета!\n");
+        }
+
+        // Проверка на завершение работы
+        if (current_state == 0) {
+            printf("Работа завершена.\n");
+            break;
+        }
+    }
+
+    // Освобождение памяти, выделенной для таблицы состояний
+    free(moore_table);
+
+    return 0;
+}
