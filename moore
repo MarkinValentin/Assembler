@@ -1,71 +1,47 @@
-#include <stdio.h>
+class VendingMachine:
+    def __init__(self):
+        self.state = 'idle'
+        self.balance = 0
 
-typedef enum {
-    STATE_IDLE,
-    STATE_SELECT_ITEM,
-    STATE_DISPENSE,
-    STATE_RETURN_CHANGE
-} State;
+    def insert_coin(self, coin):
+        if self.state == 'idle':
+            if coin in [1, 2, 5, 10]:
+                self.balance += coin
+                print("Inserted {} ruble coin. Current balance: {} rubles.".format(coin, self.balance))
+            else:
+                print("Invalid coin. Accepted coins: 1, 2, 5, 10.")
+        else:
+            print("Cannot insert coin. Vending machine is currently processing a transaction.")
 
-typedef enum {
-    ITEM_NONE,
-    ITEM_9_RUB,
-    ITEM_3_RUB
-} Item;
+    def select_product(self, product_price):
+        if self.state == 'idle':
+            if self.balance >= product_price:
+                self.balance -= product_price
+                print("Product purchased! Your change: {} rubles.".format(self.balance))
+                self.balance = 0
+            else:
+                print("Insufficient balance. Please insert more coins.")
+        else:
+            print("Cannot select product. Vending machine is currently processing a transaction.")
 
-State process_input(State current_state, int coin, Item *selected_item) {
-    switch (current_state) {
-        case STATE_IDLE:
-            if (coin == 1 || coin == 2 || coin == 5 || coin == 10)
-                return STATE_SELECT_ITEM;
-            break;
-        case STATE_SELECT_ITEM:
-            if (coin == 1 || coin == 2 || coin == 5 || coin == 10) {
-                // Проверяем, хватает ли денег на товар
-                if (*selected_item == ITEM_9_RUB && coin >= 9) {
-                    return STATE_DISPENSE;
-                } else if (*selected_item == ITEM_3_RUB && coin >= 3) {
-                    return STATE_DISPENSE;
-                }
-            }
-            break;
-        case STATE_DISPENSE:
-            return STATE_RETURN_CHANGE;
-        case STATE_RETURN_CHANGE:
-            return STATE_IDLE;
-    }
-    return current_state;
-}
+    def reset(self):
+        self.state = 'idle'
+        self.balance = 0
+        print("Vending machine reset.")
 
-void perform_action(State current_state, Item selected_item) {
-    switch (current_state) {
-        case STATE_IDLE:
-            printf("Выберите товар (1 - 9 руб, 2 - 3 руб)\n");
-            break;
-        case STATE_SELECT_ITEM:
-            printf("Внесите деньги (1, 2, 5, 10)\n");
-            break;
-        case STATE_DISPENSE:
-            printf("Товар выдается: %s\n", selected_item == ITEM_9_RUB ? "9 рублей" : "3 рубля");
-            break;
-        case STATE_RETURN_CHANGE:
-            printf("Сдача возвращается\n");
-            break;
-    }
-}
 
-int main() {
-    State current_state = STATE_IDLE;
-    int coin;
-    Item selected_item = ITEM_NONE;
+# Пример использования:
 
-    while (1) {
-        perform_action(current_state, selected_item);
-        printf("Вставьте монету (1, 2, 5, 10): ");
-        scanf("%d", &coin);
+vending_machine = VendingMachine()
 
-        current_state = process_input(current_state, coin, &selected_item);
-    }
+vending_machine.insert_coin(5)
+vending_machine.select_product(3)
 
-    return 0;
-}
+vending_machine.insert_coin(2)
+vending_machine.insert_coin(2)
+vending_machine.select_product(9)
+
+vending_machine.insert_coin(10)
+vending_machine.select_product(9)
+
+vending_machine.reset()
