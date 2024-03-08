@@ -1,47 +1,81 @@
-class VendingMachine:
-    def __init__(self):
-        self.state = 'idle'
-        self.balance = 0
+#include <stdio.h>
 
-    def insert_coin(self, coin):
-        if self.state == 'idle':
-            if coin in [1, 2, 5, 10]:
-                self.balance += coin
-                print("Inserted {} ruble coin. Current balance: {} rubles.".format(coin, self.balance))
-            else:
-                print("Invalid coin. Accepted coins: 1, 2, 5, 10.")
-        else:
-            print("Cannot insert coin. Vending machine is currently processing a transaction.")
+// Состояния автомата
+typedef enum {
+    WAITING_FOR_COIN,
+    WAITING_FOR_SELECTION,
+    DISPENSING,
+    OUT_OF_STOCK
+} State;
 
-    def select_product(self, product_price):
-        if self.state == 'idle':
-            if self.balance >= product_price:
-                self.balance -= product_price
-                print("Product purchased! Your change: {} rubles.".format(self.balance))
-                self.balance = 0
-            else:
-                print("Insufficient balance. Please insert more coins.")
-        else:
-            print("Cannot select product. Vending machine is currently processing a transaction.")
+// Виды продуктов
+typedef enum {
+    PRODUCT_1,
+    PRODUCT_2
+} Product;
 
-    def reset(self):
-        self.state = 'idle'
-        self.balance = 0
-        print("Vending machine reset.")
+// Структура для вендингового автомата
+typedef struct {
+    State state;
+    int balance;
+    int product_prices[2];
+    int product_quantities[2];
+} VendingMachine;
 
+// Инициализация вендингового автомата
+void init(VendingMachine *vm) {
+    vm->state = WAITING_FOR_COIN;
+    vm->balance = 0;
+    vm->product_prices[PRODUCT_1] = 3;
+    vm->product_prices[PRODUCT_2] = 9;
+    vm->product_quantities[PRODUCT_1] = 10;
+    vm->product_quantities[PRODUCT_2] = 5;
+}
 
-# Пример использования:
+// Вставка монеты
+void insert_coin(VendingMachine *vm, int coin) {
+    if (coin == 1 || coin == 2 || coin == 5 || coin == 10) {
+        vm->balance += coin;
+        vm->state = WAITING_FOR_SELECTION;
+    } else {
+        printf("Недопустимая монета. Возвращаем её.\n");
+    }
+}
 
-vending_machine = VendingMachine()
+// Выбор продукта
+void select_product(VendingMachine *vm, Product product) {
+    if (vm->state != WAITING_FOR_SELECTION) {
+        printf("Сначала внесите монету.\n");
+        return;
+    }
 
-vending_machine.insert_coin(5)
-vending_machine.select_product(3)
+    if (vm->product_quantities[product] == 0) {
+        printf("Выбранный товар закончился.\n");
+        vm->state = OUT_OF_STOCK;
+        return;
+    }
 
-vending_machine.insert_coin(2)
-vending_machine.insert_coin(2)
-vending_machine.select_product(9)
+    if (vm->balance < vm->product_prices[product]) {
+        printf("Недостаточно средств для покупки выбранного товара.\n");
+        return;
+    }
 
-vending_machine.insert_coin(10)
-vending_machine.select_product(9)
+    vm->balance -= vm->product_prices[product];
+    vm->product_quantities[product]--;
+    printf("Товар успешно приобретён. Ваш баланс: %d\n", vm->balance);
+    vm->state = DISPENSING;
+}
 
-vending_machine.reset()
+// Возврат сдачи
+void return_change(VendingMachine *vm) {
+    printf("Возврат сдачи: %d\n", vm->balance);
+    vm->balance = 0;
+}
+
+int main() {
+    VendingMachine vm;
+    init(&vm);
+
+    insert_coin(&vm, 5);
+    select_product(&vm, PRODUCT_1);
+    return_change(&
