@@ -1,62 +1,197 @@
-#include <stdio.h>
+#ifndef __AVR_CR_H__
+#define __AVR_CR_H__
 
-typedef enum {
-    STATE_IDLE,
-    STATE_SELECT_ITEM,
-    STATE_DISPENSE,
-    STATE_RETURN_CHANGE
-} State;
-
-typedef enum {
-    ITEM_NONE,
-    ITEM_9_RUB,
-    ITEM_3_RUB
-} Item;
-
-State process_input(State current_state, int coin, Item *selected_item) {
-    switch (current_state) {
-        case STATE_IDLE:
-            if (coin == 1 || coin == 2 || coin == 5 || coin == 10)
-                return STATE_SELECT_ITEM;
-            break;
-        case STATE_SELECT_ITEM:
-            if (coin == 1 || coin == 2 || coin == 5 || coin == 10) {
-                // Проверяем, хватает ли денег на товар
-                if (*selected_item == ITEM_9_RUB && coin >= 9) {
-                    return STATE_DISPENSE;
-                } else if (*selected_item == ITEM_3_RUB && coin >= 3) {
-                    return STATE_DISPENSE;
-                }
-            }
-            break;
-        case STATE_DISPENSE:
-            return STATE_RETURN_CHANGE;
-        case STATE_RETURN_CHANGE:
-            return STATE_IDLE;
-    }
-    return current_state;
-}
-
-void perform_action(State current_state, Item selected_item) {
-    switch (current_state) {
-        case STATE_IDLE:
-            printf("Выберите товар (1 - 9 руб, 2 - 3 руб)\n");
-            break;
-        case STATE_SELECT_ITEM:
-            printf("Внесите деньги (1, 2, 5, 10)\n");
-            break;
-        case STATE_DISPENSE:
-            printf("Товар выдается: %s\n", selected_item == ITEM_9_RUB ? "9 рублей" : "3 рубля");
-            break;
-        case STATE_RETURN_CHANGE:
-            printf("Сдача возвращается\n");
-            break;
-    }
-}
-
-int main() {
-    State current_state = STATE_IDLE;
-    int coin;
-    Item selected_item = ITEM_NONE;
-
-   
+#include <setjmp.h>
+#include <stdint.h>
+static inline void _set_stack(register void *stack)
+{
+asm volatile(
+"in r0, __SREG__"
+"\n\t"
+"cli"
+"\n\t"
+"out __SP_H__, %B0"
+"\n\t"
+"out __SREG__, r0"
+"\n\t"
+"out __SP_L__, %A0"
+62 "\n\t"
+63 :
+64 : "e"(stack) /* : */
+65 );
+66 }
+67
+17
+68 jmp_buf g_caller;
+69 #define AVR_TASK(_name, _stack_size) \
+70 struct \
+71 { \
+72 jmp_buf jmp; \
+73 uint8_t running : 1; \
+74 uint8_t stack[_stack_size]; \
+75 } _name
+76 #define AVR_TASK_START(_name, _entry) \
+77 if (!setjmp(g_caller)) \
+78 { \
+79 _set_stack(_name.stack + sizeof(_name.stack)); \
+80 asm volatile("rjmp " #_entry); \
+81 }
+82 #define AVR_YIELD(_name, _sleep) \
+83 _name.running = !_sleep; \
+84 if (!setjmp(_name.jmp)) \
+85 longjmp(g_caller, 1)
+86 #define AVR_RESUME(_name) \
+87 if (!setjmp(g_caller)) \
+88 longjmp(_name.jmp, 1)
+89 #endif /* __AVR_CR_H__ */
+90
+91 #include <avr/io.h>
+92 #include <avr/interrupt.h>
+93 #include <avr/sleep.h>
+94 #include <stdio.h>
+95
+96 static int uart_putchar(char c, FILE *stream)
+97 {
+98 if (c == '\n')
+99 uart_putchar('\r', stream);
+100 loop_until_bit_is_set(UCSR0A, UDRE0);
+101 UDR0 = c;
+102 return 0;
+103 }
+104
+105 static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL,
+106 _FDEV_SETUP_WRITE);
+107
+108 char input_file[250] =
+"R+fF?s?o}aXw72(0)!JO@2ll9mgEbw*Kv=4cMc&&CD2tEX3t?L#_348#qFn@RO)e8@>z}#KF7f9W[E2Q0q0−3DeZv+dkD1332956MH!i5/_Lqzr>&^I9E8*={Y36/7−−I(INKDwC0]nORRfb8g.$U)Z3P−33/12wU>#+9kbmSUYDi(5S014c−%s6S)aU55P$2m1rgeSM4d&977]a75fu+N?XBp>v(LboDB{−t5Mc#*vToW67R}g3y46b2V";
+109 uint8_t count(char *buf, uint8_t start, uint8_t end, char to_find)
+110 {
+111 uint8_t count = 0;
+112 for (uint8_t j = start; j < end; j++)
+113 {
+114 if (buf[j] == to_find)
+115 {
+116 count++;
+117 }
+118 }
+119 return count;
+120 }
+121
+122 AVR_TASK(mytask1, 32);
+123 AVR_TASK(mytask2, 32);
+124 AVR_TASK(mytask3, 32);
+125
+126 uint8_t task_stat_1 = 0;
+127 uint8_t task_stat_2 = 0;
+128
+129 uint8_t task_res_1 = 0;
+130 uint8_t task_res_2 = 0;
+131
+132 uint16_t t = 0;
+133
+134 void smth()
+135 {
+18
+136 uint16_t c = 0;
+137 do
+138 {
+139 c++;
+140 if (c == 20000)
+141 {
+142 printf("running\n");
+143 }
+144 AVR_YIELD(mytask3, 1);
+145 } while (1);
+146 }
+147
+148 void count_function1()
+149 {
+150 uint16_t c = 0;
+151 uint8_t start = 0;
+152 uint8_t end = 50;
+153 uint8_t step = 5;
+154 static uint8_t i = 0;
+155 do
+156 {
+157 c++;
+158 if (c == 10000)
+159 {
+160 c = 0;
+161 i++;
+162 uint8_t curc = count(input_file, start + step * (i − 1), start
++ step * i, '3');
+163 task_res_1 += curc;
+164 printf("%d from proc1 read %d − %d\n", curc, start + step * (i
+− 1), start + step * i);
+165
+166 if (start + step * i == end)
+167 {
+168 printf("Goodbye from proc1, subtotal %d\n", task_res_1 +
+task_res_2);
+169 task_stat_1 = (uint8_t)1;
+170 }
+171 }
+172
+173 AVR_YIELD(mytask1, 1);
+174 } while (task_stat_1 == 0);
+175 }
+176
+177 void count_function2()
+178 {
+179 uint16_t c = 0;
+180 uint8_t start = 50;
+181 uint8_t end = 100;
+182 uint8_t step = 5;
+183 static uint8_t i = 0;
+184
+185 do
+186 {
+187 c++;
+188 if (c == 10000)
+189 {
+190 c = 0;
+191 i++;
+192 uint8_t curc = count(input_file, start + step * (i − 1), start
++ step * i, '3');
+193 task_res_2 += curc;
+194 printf("%d from proc2 read %d − %d\n", curc, start + step * (i
+− 1), start + step * i);
+195 if (start + step * i == end)
+196 {
+197 task_stat_2 = (uint8_t)1;
+198 printf("Goodbye from proc2, subtotal %d\n", task_res_1 +
+task_res_2);
+19
+199 }
+200 }
+201 AVR_YIELD(mytask2, 1);
+202 } while (task_stat_2 == 0);
+203 }
+204
+205 void dispatch()
+206 {
+207 AVR_TASK_START(mytask1, count_function1);
+208 AVR_TASK_START(mytask2, count_function2);
+209 AVR_TASK_START(mytask3, smth);
+210 static uint8_t total = 0;
+211 do
+212 {
+213 if (task_stat_1 == 0)
+214 {
+215 AVR_RESUME(mytask1);
+216 }
+217 if (task_stat_2 == 0)
+218 {
+219 AVR_RESUME(mytask2);
+220 }
+221 AVR_RESUME(mytask3);
+222 } while (1);
+223 }
+224
+225 int main()
+226 {
+227 stdout = &mystdout;
+228 sei(); // Enable global interrupts
+229 printf("Starting\n");
+230 dispatch();
+231 }
